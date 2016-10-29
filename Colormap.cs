@@ -68,74 +68,7 @@ namespace _051colormap
         /// <param name="colors">Output palette (array of colors).f</param>
         public static void Generate(Bitmap input, int numCol, out Color[] colors)
         {
-            int width = input.Width;
-            int height = input.Height;
-            colors = new Color[numCol];
-            Dictionary<Color, long> dic = new Dictionary<Color, long>();
-            //hard loop every color,
-            for (int i = 0; i < height; i++)
-            {
-                for (int j = 0; j < width; j++)
-                {
-                    
-                    var c = input.GetPixel(j, i);
-                    
-                    var cl = Color.FromArgb((c.R/16)*16, (c.G/16)*16, (c.B/16)*16);
-                    
-                    if (dic.ContainsKey(cl))
-                        checked {dic[cl]++;}
-                    else dic.Add(cl, 1);
-                }
-            }
-            var l = dic.ToList();
-            l.Sort(new KeyValueComparer());
-            var myList = new List<Pair>(l.Count);
-            foreach (var item in l)
-            {
-                myList.Add(new Pair(item.Key,item.Value));
-            }
-            int index = 0;
-            while (index < myList.Count)
-            {
-                var selectItem = myList[index];
-                Vector3 v = new Vector3() {X = selectItem.color.R, Y = selectItem.color.G, Z = selectItem.color.B};
-                var nList = new List<Pair>();
-
-                for (int i = 0; i <= index;i++)
-                {
-                    nList.Add(myList[i]);
-                }
-
-                for (int i = index+1; i < myList.Count; i++)
-                {
-                    Vector3 c = new Vector3() {X = myList[i].color.R, Y = myList[i].color.G, Z = myList[i].color.B};
-                    if (Vector3.DistanceSquared(v, c) < 5000)
-                    {
-                        checked
-                        {
-                            nList[index].value += myList[i].value;
-                        }
-                    }
-                    else nList.Add(new Pair(myList[i].color,myList[i].value));
-                }
-
-                index++;
-                myList = nList; 
-                
-            }
-
-            myList.Sort(new PairComparer());
-            for (int i = 0; i < numCol; i++)
-            {
-                if (myList.Count <= i)
-                {
-                    colors[i] = Color.Black;
-                }
-                else
-                {
-                    colors[i] = myList[i].color;
-                }
-            }
+         
         }
   }
 }
