@@ -98,7 +98,15 @@ namespace _051colormap
             while (index < myList.Count)
             {
                 var selectItem = myList[index];
-                Vector3 v = new Vector3() {X = selectItem.color.R, Y = selectItem.color.G, Z = selectItem.color.B};
+                byte cleanR = selectItem.color.R;
+                byte cleanG = selectItem.color.G;
+                byte cleanB = selectItem.color.B;
+                byte white = Math.Min(cleanR,Math.Min(cleanG,cleanB));
+                cleanR -= white;
+                cleanB -= white;
+                cleanG -= white;
+                
+                Vector3 v = new Vector3() {X = cleanR, Y = cleanG, Z = cleanB};
                 var nList = new List<Pair>();
 
                 for (int i = 0; i <= index;i++)
@@ -108,8 +116,15 @@ namespace _051colormap
 
                 for (int i = index+1; i < myList.Count; i++)
                 {
-                    Vector3 c = new Vector3() {X = myList[i].color.R, Y = myList[i].color.G, Z = myList[i].color.B};
-                    if (Vector3.DistanceSquared(v, c) < 5000)
+                    var cR = myList[i].color.R;
+                    var cG = myList[i].color.G;
+                    var cB = myList[i].color.B;
+                    var cW = Math.Min(cR, Math.Min(cG, cB));
+                    cR -= cW;
+                    cG -= cW;
+                    cB -= cW; 
+                    Vector3 c = new Vector3() {X = cR, Y = cG, Z = cB};
+                    if (Vector3.DistanceSquared(v, c) < 1000)
                     {
                         checked
                         {
