@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 
 namespace _051colormap
@@ -58,6 +60,7 @@ namespace _051colormap
           }
         }
 
+      private static List<Pair>[] outputList = new List<Pair>[10];
 
         /// <summary>
         /// Generate a colormap based on input image.
@@ -94,6 +97,45 @@ namespace _051colormap
             {
                 myList.Add(new Pair(item.Key,item.Value));
             }
+            Task[] tasks = new Task[10];
+            int constant = 10000;
+            for (int i = 0; i < 10; i++)
+            {
+                var x = i;
+
+                var c = i == 9 ? 0 : constant;
+                var copy = myList.ToList();
+                tasks[i] = new Task(()=>MakeCompose(c,copy,x));
+                tasks[i].Start();
+                constant = constant/2; 
+            }
+            Task.WaitAll(tasks);
+            List<Pair> best = null;
+            for (int i = 9; i >= 0; i--)
+            {
+                
+                if (outputList[i].Count < numCol)
+                {
+                    
+                    if (i == 9) best = outputList[9];
+                    else best = outputList[i + 1];
+                    break; 
+                }
+                if (i == 0)
+                    best = outputList[0];
+            }
+
+            int correctAmount = (numCol > best.Count) ? best.Count : numCol;
+            colors = new Color[correctAmount];
+            for (int i = 0; i < correctAmount; i++)
+            {
+                colors[i] = best[i].color; 
+            }
+
+        }
+
+      private static void MakeCompose(int constant, List<Pair> myList,int output)
+      {
             int index = 0;
             while (index < myList.Count)
             {
@@ -101,20 +143,20 @@ namespace _051colormap
                 byte cleanR = selectItem.color.R;
                 byte cleanG = selectItem.color.G;
                 byte cleanB = selectItem.color.B;
-                byte white = Math.Min(cleanR,Math.Min(cleanG,cleanB));
+                byte white = Math.Min(cleanR, Math.Min(cleanG, cleanB));
                 cleanR -= white;
                 cleanB -= white;
                 cleanG -= white;
-                
-                Vector3 v = new Vector3() {X = cleanR, Y = cleanG, Z = cleanB};
+
+                Vector3 v = new Vector3() { X = cleanR, Y = cleanG, Z = cleanB };
                 var nList = new List<Pair>();
 
-                for (int i = 0; i <= index;i++)
+                for (int i = 0; i <= index; i++)
                 {
                     nList.Add(myList[i]);
                 }
 
-                for (int i = index+1; i < myList.Count; i++)
+                for (int i = index + 1; i < myList.Count; i++)
                 {
                     var cR = myList[i].color.R;
                     var cG = myList[i].color.G;
@@ -122,35 +164,24 @@ namespace _051colormap
                     var cW = Math.Min(cR, Math.Min(cG, cB));
                     cR -= cW;
                     cG -= cW;
-                    cB -= cW; 
-                    Vector3 c = new Vector3() {X = cR, Y = cG, Z = cB};
-                    if (Vector3.DistanceSquared(v, c) < 1000)
+                    cB -= cW;
+                    Vector3 c = new Vector3() { X = cR, Y = cG, Z = cB };
+                    if (Vector3.DistanceSquared(v, c) < constant)
                     {
                         checked
                         {
                             nList[index].value += myList[i].value;
                         }
                     }
-                    else nList.Add(new Pair(myList[i].color,myList[i].value));
+                    else nList.Add(new Pair(myList[i].color, myList[i].value));
                 }
 
                 index++;
-                myList = nList; 
-                
-            }
+                myList = nList;
 
-            myList.Sort(new PairComparer());
-            for (int i = 0; i < numCol; i++)
-            {
-                if (myList.Count <= i)
-                {
-                    colors[i] = Color.Black;
-                }
-                else
-                {
-                    colors[i] = myList[i].color;
-                }
             }
-        }
+            myList.Sort(new PairComparer());
+          outputList[output] = myList;
+      }
   }
 }
